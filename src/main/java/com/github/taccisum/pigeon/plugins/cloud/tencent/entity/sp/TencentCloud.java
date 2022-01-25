@@ -8,11 +8,10 @@ import com.github.taccisum.pigeon.core.entity.core.sp.MailServiceProvider;
 import com.github.taccisum.pigeon.core.entity.core.sp.SMSServiceProvider;
 import com.github.taccisum.pigeon.core.repo.ThirdAccountRepo;
 import com.github.taccisum.pigeon.plugins.cloud.tencent.enums.SpType;
-import lombok.Getter;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Resource;
+import java.util.Random;
 
 /**
  * 腾讯云
@@ -70,20 +69,70 @@ public class TencentCloud extends ServiceProvider.Base implements
     }
 
     /**
-     * 可用区域
+     * 可用区域，更多请参考 https://cloud.tencent.com/document/product/213/6091
      */
     public enum Region {
         /**
-         * 中国杭州
+         * 华南地区-广州
          */
-        HANG_ZHOU("cn-hangzhou");
+        GUANG_ZHOU("ap-guangzhou", 7),
+        /**
+         * 华南地区-深圳金融
+         */
+        SHEN_ZHEN_FSI("ap-shenzhen-fsi", 3),
+        /**
+         * 华南地区-上海
+         */
+        SHANG_HAI("ap-shanghai", 5),
+        SHANG_HAI_FSI("ap-shanghai-fsi", 3),
+        NAN_JING("ap-nanjing", 3),
+        BEI_JING("ap-beijing", 7),
+        CHENG_DU("ap-chengdu", 2),
+        CHONG_QING("ap-chongqing", 1),
+        HONG_KONG("ap-hongkong", 3),
+        ;
 
-        @Getter
-        @Accessors(fluent = true)
-        private String key;
+        private static final Random R = new Random();
 
-        Region(String key) {
+        /**
+         * 区域 key
+         */
+        private final String key;
+        /**
+         * 可用区最大索引
+         */
+        private final int maxIndex;
+
+        Region(String key, int maxIndex) {
             this.key = key;
+            this.maxIndex = maxIndex;
+        }
+
+        /**
+         * 获取此区域 key
+         */
+        public String key() {
+            return this.key;
+        }
+
+        /**
+         * 例 {@code Region.GUANG_ZHOU.key(1)} -> "ap-guangzhou-1"
+         *
+         * @param index 可用区索引
+         */
+        public String zoneKey(int index) {
+            index = Math.max(index, 1);
+            index = Math.min(index, maxIndex);
+            return String.format("%s-%d", this.key, index);
+        }
+
+        /**
+         * 获取可用区 key（随机索引）
+         */
+        public String zoneKey() {
+            // [1, max_index] 随机取值
+            int index = R.nextInt(maxIndex) + 1;
+            return this.zoneKey(index);
         }
     }
 }

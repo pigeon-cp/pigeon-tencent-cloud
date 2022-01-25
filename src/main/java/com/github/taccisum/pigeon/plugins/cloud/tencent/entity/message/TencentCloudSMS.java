@@ -2,12 +2,12 @@ package com.github.taccisum.pigeon.plugins.cloud.tencent.entity.message;
 
 import com.github.taccisum.domain.core.exception.DataErrorException;
 import com.github.taccisum.pigeon.core.data.MessageDO;
-import com.github.taccisum.pigeon.core.entity.core.MessageTemplate;
 import com.github.taccisum.pigeon.core.entity.core.message.SMS;
 import com.github.taccisum.pigeon.core.entity.core.sp.SMSServiceProvider;
 import com.github.taccisum.pigeon.core.repo.MessageTemplateRepo;
 import com.github.taccisum.pigeon.plugins.cloud.tencent.entity.sp.TencentCloud;
 import com.github.taccisum.pigeon.plugins.cloud.tencent.entity.sp.TencentCloudAccount;
+import com.github.taccisum.pigeon.plugins.cloud.tencent.entity.template.TencentCloudSMSTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -38,23 +38,23 @@ public class TencentCloudSMS extends SMS {
         TencentCloudAccount account = this.getServiceProvider()
                 .getAccountOrThrow(data.getSpAccountId());
 
-        MessageTemplate template = this.getTemplate();
+        TencentCloudSMSTemplate template = this.getMessageTemplate();
 
         if (template != null) {
             account.sendSMS(
-                    template.data().getThirdCode(),
+                    template.getThirdTemplateId(),
                     data.getTarget(),
-                    "豌豆思维VIPThink",
-                    data.getParams()
+                    data.getTag(),
+                    new String[]{data.getParams()}
             );
         } else {
             throw new UnsupportedOperationException("暂不支持非模板消息");
         }
     }
 
-    private MessageTemplate getTemplate() {
-        return messageTemplateRepo.get(this.data().getTemplateId())
-                .orElse(null);
+    @Override
+    public TencentCloudSMSTemplate getMessageTemplate() throws MessageTemplateRepo.MessageTemplateNotFoundException {
+        return (TencentCloudSMSTemplate) super.getMessageTemplate();
     }
 
     @Override

@@ -4,7 +4,9 @@ import com.github.taccisum.domain.core.exception.DataErrorException;
 import com.github.taccisum.pigeon.core.data.MessageDO;
 import com.github.taccisum.pigeon.core.entity.core.message.Mail;
 import com.github.taccisum.pigeon.core.entity.core.sp.MailServiceProvider;
+import com.github.taccisum.pigeon.core.repo.MessageTemplateRepo;
 import com.github.taccisum.pigeon.plugins.cloud.tencent.entity.sp.TencentCloud;
+import com.github.taccisum.pigeon.plugins.cloud.tencent.entity.template.TencentCloudMailTemplate;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,14 +31,19 @@ public class TencentCloudMail extends Mail {
         MessageDO data = this.data();
         this.getServiceProvider()
                 .getAccountOrThrow(data.getSpAccountId())
-                .sendMailVia(
+                .sendMail(
                         data.getSender(),
                         data.getTarget(),
                         data.getTitle(),
-                        data.getContent(),
-                        data.getTag(),
-                        null
+                        this.getMessageTemplate().getThirdTemplateId(),
+                        data.getParams(),
+                        data.getTag()
                 );
+    }
+
+    @Override
+    public TencentCloudMailTemplate getMessageTemplate() throws MessageTemplateRepo.MessageTemplateNotFoundException {
+        return (TencentCloudMailTemplate) super.getMessageTemplate();
     }
 
     @Override
